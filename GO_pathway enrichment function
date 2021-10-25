@@ -1,0 +1,51 @@
+GO_PATHWAY_HS_zh_v2=function(input,OutputName){   ###data--"GeneID" "res1_log2FoldChange" "res1_pvalue""res1_padj"   
+  
+  library(org.Hs.eg.db)
+  library(clusterProfiler)
+  orgDbName="org.Hs.eg.db"
+  goAnn <- get(gsub(".db", "GO", orgDbName))
+  universe <- Lkeys(goAnn)
+  
+  ######GO
+  ego2 <- enrichGO(gene         = as.character(input[,1]),
+                   OrgDb         = org.Hs.eg.db,
+                   keyType       = 'ENSEMBL',
+                   ont           = "BP",
+                   pAdjustMethod = "BH",
+                   #pvalueCutoff  = 0.01,
+                   #qvalueCutoff  = 0.05)
+                   pvalueCutoff  = 1,
+                   qvalueCutoff  = 1)
+  
+  png(filename=paste(OutputName,"GO_enrichTERM_top10.png",sep=""),width = 6,height = 8,units = "in",res=600 )
+  print(barplot(ego2 , drop=TRUE, showCategory=10))
+  dev.off()
+  
+  png(filename=paste(OutputName,"GO_enrichTERM_top30.png",sep=""),width = 10,height = 10,units = "in",res=600 )
+  print(dotplot(ego2, showCategory=30))
+  dev.off()
+  
+    
+  #######PATHWAY
+  cols <- c("SYMBOL", "ENTREZID")
+  ensids=as.character(input[,1])
+  gene=select(org.Hs.eg.db, keys=ensids, columns=cols, keytype="ENSEMBL")[,3]
+  gene=gene[!is.na(gene)]
+  
+  ego3 <- enrichKEGG(gene         = gene,
+                     organism     = 'hsa',
+                     #keytype       = 'ENSEMBL',
+                     #pvalueCutoff = 0.05)
+                     pvalueCutoff = 0.1)
+  
+  png(filename=paste(OutputName,"PATHWAY_enrichTERM_top10.png",sep=""),width = 6,height = 8,units = "in",res=600 )
+  print(barplot(ego3 , drop=TRUE, showCategory=10))
+  dev.off()
+  
+  png(filename=paste(OutputName,"PATHWAY_enrichTERM_top30.png",sep=""),width = 10,height = 10,units = "in",res=600 )
+  dotplot(ego3, showCategory=30)
+  dev.off()
+   
+  
+  
+} ###data--"GeneID" "res1_log2FoldChange" "res1_pvalue""res1_padj"  (including filtration by pvalue0.05 and FC0.6)
